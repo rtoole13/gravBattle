@@ -5,16 +5,18 @@ public class InputController : MonoBehaviour {
 
     public GameObject spawnObject;
     public GameObject playerObject;
-    private CircleCollider2D spawnCollider;
 
     private GameObject activeWell;
     private Vector3 playerDestination;
     private float startTime;
     private float journeyDistance;
+    public float playerSpeed;
+    
     // Use this for initialization
     void Start ()
     {
-        spawnCollider = spawnObject.GetComponent<CircleCollider2D>();
+        playerDestination = playerObject.transform.position;
+        journeyDistance = 1;
     }
 	
 	// Update is called once per frame
@@ -24,11 +26,10 @@ public class InputController : MonoBehaviour {
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mousePos.z = 1;
+
+            playerDestination = mousePos;
             startTime = Time.time;
             journeyDistance = Vector3.Distance(playerObject.transform.position, mousePos);
-
-            playerObject.transform.position = Vector3.Lerp(playerObject.transform.position, mousePos, Time.deltaTime);
-            
         }
 	    if (Input.GetMouseButtonUp(1))
         {
@@ -45,20 +46,11 @@ public class InputController : MonoBehaviour {
             }   
         }
 	}
-    private bool CollidesWithSpawnObject(Vector3 pos, float radius)
+
+    void FixedUpdate()
     {
-        Collider2D[] collisions = Physics2D.OverlapCircleAll(pos, radius);
-        if (collisions.Length > 0)
-        {
-            foreach (Collider2D collision in collisions)
-            {
-                if (collision.gameObject.CompareTag(spawnObject.tag))
-                {
-                    Destroy(collision.gameObject);
-                }
-            }
-            return true;
-        }
-        return false;
+        float distCovered = (Time.time - startTime) * playerSpeed;
+        float fracJourney = distCovered / journeyDistance;
+        playerObject.transform.position = Vector3.Lerp(playerObject.transform.position, playerDestination, fracJourney);
     }
 }
